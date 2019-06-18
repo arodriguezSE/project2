@@ -13,25 +13,6 @@ chats=[]
 def index():
     #return "Project 2: TODO"
     return render_template("index.html",chats=chats)
-# @app.route("/newchat", methods=["POST"])
-# def newchat():
-#
-#     newChatName=request.form.get("chatname")
-#     print("got request to create" + newChatName)
-#
-#     if newChatName in chats:
-#         #return jsonify({"success": False})
-#         emit("new",{"success": False}, broadcast=True)
-#         print("used name")
-#
-#     else:
-#         chats.append(newChatName)
-#         print("not used name")
-#         return jsonify({"success": True })
-#         print("trying")
-#         emit("new", {"success": True, "newChatName" : newChatName}, broadcast=True)
-#         #emit("chat added", {"newChatName" : newChatName}, broadcast=True)
-#         print("event emited")
 
 @socketio.on("new chat petition")
 def newchat(data):
@@ -43,13 +24,14 @@ def newchat(data):
         print("Taken "+ newChatName)
     else:
         chats.append(newChatName)
-        emit("new chat", {"success": True, "newChatName" : newChatName}, broadcast=True)
+        newIndex = len(chats)-1
+        print("New index number: "+str(newIndex))
+        emit("new chat", {"success": True, "newChatName" : newChatName, "newIndex": newIndex}, broadcast=True)
         print("Available "+ newChatName)
-    #print(newchatname)
-    #emit("announce vote", {"selection": selection}, broadcast=True)
 
-
-
+@app.route("/<int:chatnumber>")
+def chatroom(chatnumber):
+    return (render_template("chatview.html",chatnumber=chatnumber))
 
 
 

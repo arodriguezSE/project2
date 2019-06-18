@@ -8,19 +8,6 @@
 <h1>Home</h1>
 
 
-  <!-- <form action="/login" method="post">
-    <div class="form-group">
-      <input type="text" class="form-control" name="username" placeholder="username">
-    </div>
-
-    <div class="form-group">
-      <input type="password" class="form-control" name="password" placeholder="password">
-    </div>
-
-    <div class="form-group">
-      <button type="submit" class="btn btn-primary">Log in</button>
-    </div>
-  </form> -->
   <div class="container">
     <h3 > Hello <span id="greet"> </span> </h3>
   </div>
@@ -29,7 +16,7 @@
     <h5>Choose a chat:</h5>
     <ul id="chats">
       {%for chat in chats%}
-        <li>{{chat}}</li>
+        <li>  <a href="/{{loop.index0}}">{{chat}}</a> </li>
         {%endfor%}
     </ul>
   </div>
@@ -63,15 +50,13 @@
         });
         document.addEventListener('DOMContentLoaded', () => {
           var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
-          console.log("connection")
+
           // When connected, configure form
           socket.on('connect', () => {
-            console.log(" after connection")
+
           // Each button should emit a "submit vote" event
             document.querySelector('#chatButton').onclick = () => {
-                console.log("submision")
                 const newchatname = document.querySelector('#chatname').value;
-                console.log(newchatname)
                 socket.emit("new chat petition", {"newchatname": newchatname});
                 document.querySelector('#chatname').value = '';
 
@@ -79,16 +64,20 @@
           });
           // When a new chat is announced, add to the unordered list
           socket.on("new chat", data => {
-            console.log("received response")
-            console.log("response: "+data.success)
-            console.log((data.success)==false)
-            if(data.success==false){
+
+            if(!data.success){
               alert("There is already a chat with that name. Try another name");
             }
             else {
               // Create new item for chat list
               const li = document.createElement('li');
-              li.innerHTML = data.newChatName;
+              //create link for as list element
+              const a = document.createElement('a');
+              a.innerHTML=data.newChatName;
+              a.href = "/"+data.newIndex;
+              
+              //add link to list element
+              li.appendChild(a);
 
               // Add new item to chat list
               document.querySelector('#chats').append(li);
