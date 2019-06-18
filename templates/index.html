@@ -36,81 +36,68 @@
 
   <div class="container">
     <h5>Or create a new chat:</h5>
-    <form  id="newChatForm" class="form-inline">
+
       <div class="form-group">
         <input type="text" class="form-control" id="chatname" name="chatname" placeholder="New chat name">
       </div>
 
       <div class="form-group">
-        <button type="submit" class="btn btn-primary">Create chat</button>
+        <button id ="chatButton" type="button" class="btn btn-primary">Create chat</button>
       </div>
-    </form>
-  </div>
+
+    </div>
 
 
 
   <script>
-              // Set starting value of counter to 0
-              if (!localStorage.getItem('displayName'))
-              {
-                  var name = window.prompt("Please enter your name");
-                  localStorage.setItem('displayName', name);
-              }
+        // Get username from localstore or ask for one
+        if (!localStorage.getItem('displayName'))
+        {
+            var name = window.prompt("Please enter your name");
+            localStorage.setItem('displayName', name);
+        }
 
-              // Load current value of  counter
-              document.addEventListener('DOMContentLoaded', () => {
-                  document.querySelector('#greet').innerHTML = localStorage.getItem('displayName');
-              });
+        // Display   username
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('#greet').innerHTML = localStorage.getItem('displayName');
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+          var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+          console.log("connection")
+          // When connected, configure form
+          socket.on('connect', () => {
+            console.log(" after connection")
+          // Each button should emit a "submit vote" event
+            document.querySelector('#chatButton').onclick = () => {
+                console.log("submision")
+                const newchatname = document.querySelector('#chatname').value;
+                console.log(newchatname)
+                socket.emit("new chat petition", {"newchatname": newchatname});
+                document.querySelector('#chatname').value = '';
 
-              document.addEventListener('DOMContentLoaded', () => {
-                  document.querySelector('#newChatForm').onsubmit = ()=>{
-                    const req = new XMLHttpRequest();
-                    const chatname=document.querySelector('#chatname').value;
-                    req.open('POST', '/newchat');
+            };
+          });
+          // When a new chat is announced, add to the unordered list
+          socket.on("new chat", data => {
+            console.log("received response")
+            console.log("response: "+data.success)
+            console.log((data.success)==false)
+            if(data.success==false){
+              alert("There is already a chat with that name. Try another name");
+            }
+            else {
+              // Create new item for chat list
+              const li = document.createElement('li');
+              li.innerHTML = data.newChatName;
 
-                    // Callback function for when request completes
-                    req.onload = () => {
+              // Add new item to chat list
+              document.querySelector('#chats').append(li);
 
-                      // Extract JSON data from request
-                    const data = JSON.parse(req.responseText);
+            }
 
-                    // Update the result div
-                    if (data.success) {
+          });
+        });
 
-                      //const contents = `Name of new chat ${chatname}.`
-                      //document.querySelector('#chats').innerHTML = contents;
-                      // Create new item for list
-                      const li = document.createElement('li');
-                      li.innerHTML = chatname;
-
-                      // Add new item to task list
-                      document.querySelector('#chats').append(li);
-
-                      // Clear input field
-                      document.querySelector('#chatname').value = '';
-
-                      // Stop form from submitting
-                      return false;
-                    }
-                    else {
-                      alert("There is already a chat with that name. Try another name");
-                      document.querySelector('#chatname').value = '';
-                      //document.querySelector('#chats').innerHTML = 'There was an error.';
-                    }
-                  }
-                  // Add data to send with request
-                  const data = new FormData();
-                  data.append('chatname', chatname);
-
-
-                  // Send request
-                  req.send(data);
-                  return false;
-
-                  }
-              });
-
-            
           </script>
 
 
