@@ -9,8 +9,80 @@
 
 
   <div class="container">
-    <h3 > Hello this is room {{chatnumber}} </h3>
+    <h3 > Hello <span id="greet"> this is room {{chatnumber}} </h3>
   </div>
+
+
+
+    <div class="container">
+
+      <ul id="messages">
+        {%for msg in messages%}
+          <li> {{msg.date}} {{msg.time}}<br>{{msg.user}} : {{msg.text}} </li>
+          {%endfor%}
+      </ul>
+    </div>
+
+    <div class="container">
+      <h5>Write a message:</h5>
+
+        <div class="form-group">
+          <input type="text" class="form-control" id="message" name="message" placeholder="">
+        </div>
+
+        <div class="form-group">
+          <button id ="msgButton" type="button" class="btn btn-primary">Send message</button>
+        </div>
+
+      </div>
+
+
+<script>
+
+  // Display   username
+  document.addEventListener('DOMContentLoaded', () => {
+    var username= localStorage.getItem('displayName')
+      document.querySelector('#greet').innerHTML = username;
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+    // When connected, configure button
+    socket.on('connect', () => {
+
+    //
+      document.querySelector('#msgButton').onclick = () => {
+          const newmessage = document.querySelector('#message').value;
+          var today = new Date();
+          var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+          var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+
+          console.log(date)
+          console.log(time)
+          socket.emit("send message", {"newmessage": newmessage, "username": localStorage.getItem('displayName'), "chatnumber": {{chatnumber}}, "date":date,"time": time });
+          document.querySelector('#message').value = '';
+
+      };
+    });
+    // When a new message is announced, add to the unordered list
+    socket.on("new message", data => {
+      console.log("received message from server")
+
+      // Create new item for chat list
+      const li = document.createElement('li');
+
+      displayMsg=data.date + " "+data.time + "<br>" + data.username+" : "+data.newmessage
+      li.innerHTML=displayMsg;
+
+
+      // Add new item to chat list
+      document.querySelector('#messages').append(li);
+
+
+
+    });
+  });
+  </script>
 
 
 
