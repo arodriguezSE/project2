@@ -9,7 +9,7 @@
 
 
   <div class="container">
-    <h3 > Hello <span id="greet"> this is room {{chatnumber}} </h3>
+    <h3 > Hello <span id="greet"></span>  this is room {{chatnumber}}</h3>
   </div>
 
 
@@ -39,11 +39,31 @@
 
 <script>
 
+  if(performance.navigation.type == 2){
+   location.reload(true);
+}
+
   // Display   username
   document.addEventListener('DOMContentLoaded', () => {
     var username= localStorage.getItem('displayName')
       document.querySelector('#greet').innerHTML = username;
+      //save chatroom as well
+
+      localStorage.setItem('chatroom',{{chatnumber}})
+      localStorage.setItem('loggedIn',1)
+
   });
+
+  /*// Display   username
+  document.addEventListener('close', () => {
+    console.log("closing")
+    localStorage.setItem('chatroom',{{chatnumber}})
+
+  });*/
+
+  /*window.onbeforeunload = function (event) {
+    localStorage.setItem('loggedIn',0)
+  };*/
   document.addEventListener('DOMContentLoaded', () => {
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 

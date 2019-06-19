@@ -10,6 +10,7 @@
 
   <div class="container">
     <h3 > Hello <span id="greet"> </span> </h3>
+    <a id="backlink"><a>
   </div>
 
   <div class="container">
@@ -37,12 +38,36 @@
 
 
   <script>
+
+      //esto para q vaya bien el boton de atras o delante del browser.
+      //si no no quedaba actualizado a los ultimos chats o mnsajes
+      // solucion sacada de aqui https://stackoverflow.com/questions/43043113/how-to-force-reloading-a-page-when-using-browser-back-button
+      // https://stackoverflow.com/questions/1195440/ajax-back-button-and-dom-updates/1195934#1195934 mas info
+      if(performance.navigation.type == 2){
+        location.reload(true);
+      }
         // Get username from localstore or ask for one
         if (!localStorage.getItem('displayName'))
         {
             var name = window.prompt("Please enter your name");
             localStorage.setItem('displayName', name);
         }
+
+        // Display   username
+        document.addEventListener('DOMContentLoaded', () => {
+          if(localStorage.getItem('loggedIn')==1){
+            console.log("we remember")
+              let newpage = "/"+(localStorage.getItem('chatroom').toString())
+              link= document.querySelector('#backlink');
+              link.innerHTML = "Go to prevoius chat";
+              link.href=newpage;
+              //window.location.href = newpage;
+          }
+          else{
+            console.log("we dont remember")
+          }
+
+        });
 
         // Display   username
         document.addEventListener('DOMContentLoaded', () => {
@@ -75,7 +100,7 @@
               const a = document.createElement('a');
               a.innerHTML=data.newChatName;
               a.href = "/"+data.newIndex;
-              
+
               //add link to list element
               li.appendChild(a);
 
