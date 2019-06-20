@@ -17,9 +17,9 @@
     <div class="container">
 
       <ul id="messages">
-        {%for msg in messages%}
+        <!-- {%for msg in messages%}
           <li> {{msg.date}} {{msg.time}}<br>{{msg.user}} : {{msg.text}} </li>
-          {%endfor%}
+          {%endfor%} -->
       </ul>
     </div>
 
@@ -52,21 +52,15 @@
       localStorage.setItem('chatroom',{{chatnumber}})
       localStorage.setItem('loggedIn',1)
 
+      //load messages
+
+
   });
 
-  /*// Display   username
-  document.addEventListener('close', () => {
-    console.log("closing")
-    localStorage.setItem('chatroom',{{chatnumber}})
-
-  });*/
-
-  /*window.onbeforeunload = function (event) {
-    localStorage.setItem('loggedIn',0)
-  };*/
   document.addEventListener('DOMContentLoaded', () => {
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
-
+    let chatnumber = {{chatnumber}}
+    socket.emit("load request",{"chatnumber" : chatnumber });
     // When connected, configure button
     socket.on('connect', () => {
 
@@ -77,30 +71,59 @@
           var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
           var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
 
-          console.log(date)
-          console.log(time)
           socket.emit("send message", {"newmessage": newmessage, "username": localStorage.getItem('displayName'), "chatnumber": {{chatnumber}}, "date":date,"time": time });
           document.querySelector('#message').value = '';
+        };
+      });
 
-      };
-    });
     // When a new message is announced, add to the unordered list
     socket.on("new message", data => {
-      console.log("received message from server")
 
       // Create new item for chat list
       const li = document.createElement('li');
 
       displayMsg=data.date + " "+data.time + "<br>" + data.username+" : "+data.newmessage
       li.innerHTML=displayMsg;
-
+      if (data.username==localStorage.getItem('displayName')){
+        const button = document.createElement('button');
+        button. innerHTML = "Delete";
+        button.onclick = function(){
+            socket.emit("delete message", {"id": data.id, "username": localStorage.getItem('displayName'), "chatnumber": {{chatnumber}} });
+        }
+        li.append(button)
+      }
 
       // Add new item to chat list
       document.querySelector('#messages').append(li);
+    });
 
+    socket.on('load messages', data => {
+      document.querySelector('#messages').innerHTML=""
+      if(data.chatnumber == {{chatnumber}} ){
+        messageArray=data.chatmessages;
+        for(m of messageArray){
+          const li = document.createElement('li');
 
+          displayMsg=m.date + " "+m.time + "<br>" + m.user+" : "+m.text
+          li.innerHTML=displayMsg;
+          if (m.user==localStorage.getItem('displayName')){
+            const button = document.createElement('button');
+            button. innerHTML = "Delete";
+            button.onclick = function(){
+
+                socket.emit("delete message", {"id": m.id, "username": localStorage.getItem('displayName'), "chatnumber": {{chatnumber}} });
+              }
+            li.append(button)
+          }
+
+          // Add new item to chat list
+          document.querySelector('#messages').append(li);
+
+        }
+      }
 
     });
+
   });
   </script>
 

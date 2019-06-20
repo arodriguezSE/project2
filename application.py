@@ -3,17 +3,22 @@ import os
 from flask import Flask, render_template,request,jsonify
 from flask_socketio import SocketIO, emit
 from collections import deque
+import json
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
+
 class Message:
+    idCount=0
     def __init__(self, text, user,date,time):
         self.text = text
         self.user = user
         self.date = date
         self.time = time
+        self.id =Message.idCount
+        Message.idCount += 1
 
 chats=[]
 #this will be a list of deques
@@ -28,18 +33,18 @@ def index():
 def newchat(data):
     #print("petition")
     newChatName = data["newchatname"]
-    #se puede hacer sin broadcast?
+
     if newChatName in chats:
         emit("new chat",{"success": False}, broadcast=True)
-        #print("Taken "+ newChatName)
+
     else:
         chats.append(newChatName)
         newIndex = len(chats)-1
         #create deque of messages for new chat
         messages.append(deque(maxlen=100))
-        #print("New index number: "+str(newIndex))
+
         emit("new chat", {"success": True, "newChatName" : newChatName, "newIndex": newIndex}, broadcast=True)
-        #print("Available "+ newChatName)
+
 
 @socketio.on("send message")
 def newmessage(data):
@@ -52,9 +57,39 @@ def newmessage(data):
     m=Message(newmessage,username,date,time)
     #qMsg=messages[chatnumber]
     messages[chatnumber].append(m)
-    emit("new message", {"newmessage": newmessage, "username": username, "chatnumber": chatnumber,  "date":date,"time": time}, broadcast=True)
+    emit("new message", {"newmessage": newmessage, "username": username, "chatnumber": chatnumber,  "date":date,"time": time, "id":m.id}, broadcast=True)
     print("message broadcasted")
 
+@socketio.on("delete message")
+def delete(data):
+    msgId=data["id"]
+    chatnumber = data["chatnumber"]
+    chatmessages = messages[chatnumber]
+
+    index=0
+    for m in chatmessages:
+        if m.id == msgId:
+            print(json.dumps(m.__dict__))
+            break
+        index += 1
+    del messages[chatnumber][index]
+
+    #prepare messages for json, convert to dict
+    messagesindict=[]
+    for m in messages[chatnumber]:
+        messagesindict.append(m.__dict__)
+
+    emit("load messages",{"chatmessages":messagesindict,"chatnumber":chatnumber})
+
+@socketio.on("load request")
+def load(data):
+
+    chatnumber = data["chatnumber"]
+    chatmessages = messages[chatnumber]
+    messagesindict=[]
+    for m in chatmessages:
+        messagesindict.append(m.__dict__)
+    emit("load messages",{"chatmessages":messagesindict,"chatnumber":chatnumber})
 
 @app.route("/<int:chatnumber>")
 def chatroom(chatnumber):

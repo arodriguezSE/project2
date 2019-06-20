@@ -56,16 +56,14 @@
         // Display   username
         document.addEventListener('DOMContentLoaded', () => {
           if(localStorage.getItem('loggedIn')==1){
-            console.log("we remember")
+
               let newpage = "/"+(localStorage.getItem('chatroom').toString())
               link= document.querySelector('#backlink');
               link.innerHTML = "Go to prevoius chat";
               link.href=newpage;
               //window.location.href = newpage;
           }
-          else{
-            console.log("we dont remember")
-          }
+          
 
         });
 
